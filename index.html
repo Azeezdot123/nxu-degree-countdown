@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NXU Degree Countdown</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      max-width: 420px;
+      width: 90%;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .date {
+      opacity: 0.8;
+      margin-bottom: 1.5rem;
+    }
+
+    .countdown {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .time-box {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      padding: 1rem 0.5rem;
+    }
+
+    .number {
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+
+    .label {
+      font-size: 0.7rem;
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .quote {
+      font-style: italic;
+      font-size: 0.95rem;
+      opacity: 0.9;
+      min-height: 3em;
+    }
+
+    footer {
+      margin-top: 1.5rem;
+      font-size: 0.7rem;
+      opacity: 0.6;
+    }    .progress-container {
+      margin-top: 1.5rem;
+    }
+
+    .progress-label {
+      font-size: 0.75rem;
+      margin-bottom: 0.4rem;
+      opacity: 0.85;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00ffcc, #00c6ff);
+      border-radius: 999px;
+      transition: width 0.6s ease;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>NXU Degree Countdown 🎓</h1>
+    <div class="date">Target date: August 31</div>
+
+    <div class="countdown">
+      <div class="time-box">
+        <div class="number" id="days">0</div>
+        <div class="label">Days</div>
+      </div>
+      <div class="time-box">
+        <div class="number" id="hours">0</div>
+        <div class="label">Hours</div>
+      </div>
+      <div class="time-box">
+        <div class="number" id="minutes">0</div>
+        <div class="label">Minutes</div>
+      </div>
+      <div class="time-box">
+        <div class="number" id="seconds">0</div>
+        <div class="label">Seconds</div>
+      </div>
+    </div>
+
+    <div class="quote" id="quote"></div>
+
+    <footer>Built for the finish line 🚀    <div class="progress-container">
+      <div class="progress-label">Courses left: <strong id="courses-left">15</strong> / 15</div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <footer>Built by <strong>Quareeb</strong> 🚀</footer>
+  </div>
+
+  <script>
+    const targetDate = new Date(new Date().getFullYear(), 7, 31, 23, 59, 59);
+
+    const quotes = [
+      "You’re closer than you think. Keep going.",
+      "Every second counts. Finish strong.",
+      "This degree will be worth it. Stay locked in.",
+      "Consistency beats motivation. Don’t stop.",
+      "Future you is already proud.",
+      "One chapter left. Close it with excellence.",
+    ];
+
+    function updateCountdown() {
+      const now = new Date();
+      const diff = targetDate - now;
+
+      if (diff <= 0) {
+        document.querySelector('.countdown').innerHTML = "<strong>🎉 DONE! 🎉</strong>";
+        document.getElementById('quote').textContent = "You made it. NXU degree completed.";
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+
+      document.getElementById('days').textContent = days;
+      document.getElementById('hours').textContent = hours;
+      document.getElementById('minutes').textContent = minutes;
+      document.getElementById('seconds').textContent = seconds;
+    }
+
+    function rotateQuote() {
+      const quote = quotes[Math.floor(Math.random() * quotes.length)];
+      document.getElementById('quote').textContent = `“${quote}”`;
+    }
+
+    updateCountdown();
+    rotateQuote();
+
+    setInterval(updateCountdown, 1000);
+    setInterval(rotateQuote, 10000);    const totalCourses = 15;
+    const coursesPerMonth = 2;
+    const startDate = new Date(new Date().getFullYear(), 0, 1);
+    const monthsPassed = Math.max(0, Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24 * 30)));
+    const completedCourses = Math.min(totalCourses, monthsPassed * coursesPerMonth);
+    const remainingCourses = Math.max(0, totalCourses - completedCourses);
+
+    document.getElementById('courses-left').textContent = remainingCourses;
+    document.getElementById('progress-fill').style.width = `${(completedCourses / totalCourses) * 100}%`;
+
+    const canvas = document.createElement('canvas');
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let confettiPieces = [];
+
+    function launchConfetti() {
+      for (let i = 0; i < 200; i++) {
+        confettiPieces.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          r: Math.random() * 6 + 4,
+          d: Math.random() * 40 + 10,
+          tilt: Math.random() * 10,
+          tiltAngle: 0,
+          color: `hsl(${Math.random() * 360}, 100%, 50%)`
+        });
+      }
+      animateConfetti();
+    }
+
+    function animateConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      confettiPieces.forEach(p => {
+        ctx.beginPath();
+        ctx.lineWidth = p.r;
+        ctx.strokeStyle = p.color;
+        ctx.moveTo(p.x + p.tilt, p.y);
+        ctx.lineTo(p.x, p.y + p.tilt + p.r);
+        ctx.stroke();
+      });
+
+      confettiPieces.forEach(p => {
+        p.y += Math.cos(p.d) + 3;
+        p.x += Math.sin(p.d);
+        p.tiltAngle += 0.1;
+        p.tilt = Math.sin(p.tiltAngle) * 10;
+      });
+
+      requestAnimationFrame(animateConfetti);
+    }
+
+    const originalUpdateCountdown = updateCountdown;
+    updateCountdown = function () {
+      originalUpdateCountdown();
+      if (targetDate - new Date() <= 0 && confettiPieces.length === 0) {
+        launchConfetti();
+      }
+    }
+
+  </script>
+</body>
+</html>
