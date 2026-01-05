@@ -69,7 +69,11 @@
       min-height: 3em;
     }
 
-    .progress-container {
+    footer {
+      margin-top: 1.5rem;
+      font-size: 0.7rem;
+      opacity: 0.6;
+    }    .progress-container {
       margin-top: 1.5rem;
     }
 
@@ -93,12 +97,6 @@
       background: linear-gradient(90deg, #00ffcc, #00c6ff);
       border-radius: 999px;
       transition: width 0.6s ease;
-    }
-
-    footer {
-      margin-top: 1.5rem;
-      font-size: 0.7rem;
-      opacity: 0.6;
     }
 
     canvas {
@@ -136,32 +134,24 @@
 
     <div class="quote" id="quote"></div>
 
-    <div class="progress-container">
-      <div class="progress-label">
-        <div style="margin-bottom: 0.3rem;">
-          ✅ Completed: <strong id="courses-completed">0</strong> courses &nbsp;|&nbsp; 
-          ⏳ Remaining: <strong id="courses-left">15</strong> courses
-        </div>
-        <div style="font-size: 0.65rem; opacity: 0.7;">
-          Pace: 2 courses/month • Total: 15 courses
-        </div>
-      </div>
+    <footer>Built for the finish line 🚀    <div class="progress-container">
+      <div class="progress-label">Courses left: <strong id="courses-left">15</strong> / 15</div>
       <div class="progress-bar-bg">
         <div class="progress-bar-fill" id="progress-fill"></div>
       </div>
     </div>
 
-    <footer>The future belongs to those who show up every day 💫</footer>
+    <footer><strong>The future belongs to those who show up every day 💫</strong> 🚀</footer>
   </div>
 
   <script>
     const targetDate = new Date(new Date().getFullYear(), 7, 31, 23, 59, 59);
 
     const quotes = [
-      "You're closer than you think. Keep going.",
+      "You’re closer than you think. Keep going.",
       "Every second counts. Finish strong.",
       "This degree will be worth it. Stay locked in.",
-      "Consistency beats motivation. Don't stop.",
+      "Consistency beats motivation. Don’t stop.",
       "Future you is already proud.",
       "One chapter left. Close it with excellence.",
     ];
@@ -189,23 +179,20 @@
 
     function rotateQuote() {
       const quote = quotes[Math.floor(Math.random() * quotes.length)];
-      document.getElementById('quote').textContent = `"${quote}"`;
+      document.getElementById('quote').textContent = `“${quote}”`;
     }
 
     updateCountdown();
     rotateQuote();
 
     setInterval(updateCountdown, 1000);
-    setInterval(rotateQuote, 10000);
-
-    const totalCourses = 15;
+    setInterval(rotateQuote, 10000);    const totalCourses = 15;
     const coursesPerMonth = 2;
     const startDate = new Date(new Date().getFullYear(), 0, 1);
     const monthsPassed = Math.max(0, Math.floor((new Date() - startDate) / (1000 * 60 * 60 * 24 * 30)));
     const completedCourses = Math.min(totalCourses, monthsPassed * coursesPerMonth);
     const remainingCourses = Math.max(0, totalCourses - completedCourses);
 
-    document.getElementById('courses-completed').textContent = completedCourses;
     document.getElementById('courses-left').textContent = remainingCourses;
     document.getElementById('progress-fill').style.width = `${(completedCourses / totalCourses) * 100}%`;
 
