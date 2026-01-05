@@ -178,40 +178,7 @@
       pointer-events: none;
     }
 
-    .course-input-section {
-      margin-top: 1rem;
-      padding-top: 1rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-    }
 
-    .course-input {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 0.5rem;
-      border-radius: 8px;
-      width: 60px;
-      text-align: center;
-      font-size: 1rem;
-      margin: 0 0.5rem;
-    }
-
-    .update-btn {
-      background: linear-gradient(135deg, #00ffcc, #00c6ff);
-      border: none;
-      color: #0f2027;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
-      transition: transform 0.2s;
-    }
-
-    .update-btn:hover {
-      transform: scale(1.05);
-    }
 
   </style>
 </head>
@@ -258,14 +225,7 @@
       </div>
     </div>
 
-    <div class="course-input-section">
-      <div style="font-size: 0.8rem; margin-bottom: 0.5rem; opacity: 0.8;">Update your progress:</div>
-      <div>
-        <input type="number" id="completed-input" class="course-input" value="25" min="0" max="40" />
-        <span style="font-size: 0.8rem;">courses done</span>
-      </div>
-      <button class="update-btn" onclick="updateProgress()">Update Progress</button>
-    </div>
+
 
     <div class="music-controls">
       <div style="font-size: 0.8rem; margin-bottom: 0.8rem; opacity: 0.8;">🎵 Study Ambience</div>
@@ -332,21 +292,22 @@
       }
     }
 
-    let coursesCompleted = parseInt(localStorage.getItem('coursesCompleted')) || 25;
-    let totalCourses = 40;
-    let coursesLeft = totalCourses - coursesCompleted;
+    // Starting from January 2025 with 25 courses already completed
+    const startDate = new Date(2025, 0, 1); // January 1, 2025
+    const coursesPerMonth = 2;
+    const baseCoursesCompleted = 25; // Already completed before January 2025
+    const totalCourses = 40;
     let milestonesShown = JSON.parse(localStorage.getItem('milestonesShown')) || [];
 
-    function updateProgress() {
-      const input = document.getElementById('completed-input');
-      coursesCompleted = parseInt(input.value);
-      coursesLeft = totalCourses - coursesCompleted;
-      
-      localStorage.setItem('coursesCompleted', coursesCompleted);
-      
-      updateCourseDisplay();
-      checkMilestones();
+    function calculateCompletedCourses() {
+      const now = new Date();
+      const monthsPassed = Math.max(0, Math.floor((now - startDate) / (1000 * 60 * 60 * 24 * 30.44)));
+      const newCoursesCompleted = Math.min(15, monthsPassed * coursesPerMonth); // Cap at 15 remaining courses
+      return baseCoursesCompleted + newCoursesCompleted;
     }
+
+    let coursesCompleted = calculateCompletedCourses();
+    let coursesLeft = totalCourses - coursesCompleted;
 
     function updateCourseDisplay() {
       const percentComplete = ((coursesCompleted / totalCourses) * 100).toFixed(1);
@@ -427,11 +388,20 @@
 
     updateCountdown();
     rotateQuote();
-    updateCourseDisplay();
-    checkMilestones();
+    
+    // Update course display and check milestones regularly
+    function updateAllProgress() {
+      coursesCompleted = calculateCompletedCourses();
+      coursesLeft = totalCourses - coursesCompleted;
+      updateCourseDisplay();
+      checkMilestones();
+    }
+    
+    updateAllProgress();
 
     setInterval(updateCountdown, 1000);
     setInterval(rotateQuote, 10000);
+    setInterval(updateAllProgress, 60000); // Update course progress every minute
 
     const canvas = document.createElement('canvas');
     document.body.appendChild(canvas);
