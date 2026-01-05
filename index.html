@@ -292,17 +292,35 @@
       }
     }
 
-    // Starting from January 2025 with 25 courses already completed
-    const startDate = new Date(2025, 0, 1); // January 1, 2025
-    const coursesPerMonth = 2;
-    const baseCoursesCompleted = 25; // Already completed before January 2025
+    // You've completed 25 courses so far, 15 remaining
+    // From now until August, you'll complete 2 courses per month
+    const baseCoursesCompleted = 25; // Already done
     const totalCourses = 40;
+    const coursesPerMonth = 2;
+    
+    // Calculate which month we're in and how many courses to add
+    const now = new Date();
+    const currentMonth = now.getMonth(); // 0 = January, 7 = August
+    const currentYear = now.getFullYear();
+    const targetMonth = 7; // August (0-indexed)
+    
     let milestonesShown = JSON.parse(localStorage.getItem('milestonesShown')) || [];
 
     function calculateCompletedCourses() {
       const now = new Date();
-      const monthsPassed = Math.max(0, Math.floor((now - startDate) / (1000 * 60 * 60 * 24 * 30.44)));
-      const newCoursesCompleted = Math.min(15, monthsPassed * coursesPerMonth); // Cap at 15 remaining courses
+      const currentMonth = now.getMonth();
+      
+      // Map: Jan=0, Feb=2, Mar=4, Apr=6, May=8, Jun=10, Jul=12, Aug=14 (but cap at 15)
+      // Since we're in January 2026 and target is August 2026
+      // January 2026 = 0 new courses (starting point)
+      // February 2026 = 2 courses
+      // March 2026 = 4 courses, etc.
+      
+      let monthsFromJanuary = currentMonth; // 0 for Jan, 1 for Feb, etc.
+      if (currentMonth < 0) monthsFromJanuary = 0;
+      if (currentMonth > 7) monthsFromJanuary = 7; // Cap at August
+      
+      const newCoursesCompleted = Math.min(15, monthsFromJanuary * coursesPerMonth);
       return baseCoursesCompleted + newCoursesCompleted;
     }
 
