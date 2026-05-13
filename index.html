@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Education SLO Dashboard</title>
+<title>Education SRE Observability Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -25,28 +25,18 @@ body {
   gap: 1.5rem;
 }
 
-/* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   padding: 1.2rem;
   background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
 }
 
-.title {
-  font-size: 1.3rem;
-  font-weight: 700;
-}
+.title { font-size: 1.3rem; font-weight: 700; }
+.sub { font-size: 0.8rem; opacity: 0.7; }
 
-.sub {
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
-/* GRID */
 .grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -60,10 +50,10 @@ body {
   padding: 1rem;
 }
 
-/* UPTIME RING */
-.ring {
-  width: 120px;
-  height: 120px;
+/* UPTIME GAUGE */
+.gauge {
+  width: 140px;
+  height: 140px;
   border-radius: 50%;
   background: conic-gradient(#00ffcc var(--p), rgba(255,255,255,0.08) 0);
   display: flex;
@@ -72,46 +62,42 @@ body {
   margin: auto;
 }
 
-.ring-inner {
-  width: 90px;
-  height: 90px;
+.inner {
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   background: #0b1320;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-}
-
-/* METRICS */
-.metric {
-  text-align: center;
-}
-
-.metric h2 {
-  margin: 0;
-}
-
-.small {
-  font-size: 0.75rem;
-  opacity: 0.7;
 }
 
 /* TIMELINE */
 .timeline {
-  height: 10px;
+  height: 12px;
   background: rgba(255,255,255,0.08);
   border-radius: 999px;
   position: relative;
+  overflow: hidden;
 }
 
 .timeline-fill {
   height: 100%;
   background: linear-gradient(90deg,#00ffcc,#7c5cff);
-  border-radius: 999px;
 }
 
-/* ALERTS */
+/* INCIDENT OVERLAY */
+.incident {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 8px;
+  background: #ff4d4d;
+  opacity: 0.8;
+}
+
+/* ALERT */
 .alert {
   padding: 0.6rem;
   border-left: 3px solid #00ffcc;
@@ -120,10 +106,10 @@ body {
   font-size: 0.8rem;
 }
 
-/* CHART */
+/* CANVAS */
 canvas {
   width: 100% !important;
-  height: 220px !important;
+  height: 240px !important;
 }
 </style>
 </head>
@@ -132,142 +118,166 @@ canvas {
 
 <div class="dashboard">
 
-  <!-- HEADER -->
-  <div class="header">
-    <div>
-      <div class="title">🎓 Education Reliability Dashboard</div>
-      <div class="sub">NXU Degree Observability System</div>
-    </div>
-    <div class="sub" id="dateNow"></div>
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="title">🎓 Education Reliability SRE Dashboard</div>
+    <div class="sub">NXU System Observability Layer</div>
   </div>
+  <div class="sub" id="today"></div>
+</div>
 
-  <!-- METRICS -->
-  <div class="grid">
+<!-- METRICS -->
+<div class="grid">
 
-    <!-- UPTIME -->
-    <div class="card metric">
-      <div class="ring" id="ring">
-        <div class="ring-inner">
-          <h2 id="uptime">0%</h2>
-          <div class="small">Completion</div>
-        </div>
+  <!-- UPTIME -->
+  <div class="card">
+    <div class="gauge" id="gauge">
+      <div class="inner">
+        <h2 id="uptime">0%</h2>
+        <div class="sub">Availability</div>
       </div>
     </div>
-
-    <!-- DAYS -->
-    <div class="card metric">
-      <h2 id="daysElapsed">0</h2>
-      <div class="small">Days Completed</div>
-      <hr style="opacity:0.1">
-      <h2 id="daysLeft">0</h2>
-      <div class="small">Days Remaining (Error Budget)</div>
-    </div>
-
-    <!-- COURSE -->
-    <div class="card metric">
-      <h2>40</h2>
-      <div class="small">Total Courses</div>
-      <hr style="opacity:0.1">
-      <h2 id="courseDone">33</h2>
-      <div class="small">Completed Courses</div>
-    </div>
-
   </div>
 
-  <!-- TIMELINE -->
+  <!-- DAYS -->
   <div class="card">
-    <h3>📍 Lifecycle Timeline</h3>
-    <div class="timeline">
-      <div class="timeline-fill" id="timelineFill"></div>
-    </div>
+    <h2 id="activeDays">0</h2>
+    <div class="sub">Active Learning Days</div>
+    <hr style="opacity:0.1">
+    <h2 id="downtimeDays">0</h2>
+    <div class="sub">Downtime (Breaks)</div>
   </div>
 
-  <!-- CHART -->
+  <!-- SLA -->
   <div class="card">
-    <h3>📈 Progress Trajectory (SLO Trend)</h3>
-    <canvas id="chart"></canvas>
-  </div>
-
-  <!-- ALERTS -->
-  <div class="card">
-    <h3>🚨 Active SLO Signals</h3>
-    <div id="alerts"></div>
+    <h2>95%</h2>
+    <div class="sub">SLO Target</div>
+    <hr style="opacity:0.1">
+    <h2 id="status"></h2>
+    <div class="sub">System Status</div>
   </div>
 
 </div>
 
+<!-- TIMELINE -->
+<div class="card">
+  <h3>📍 Lifecycle Timeline (with Incidents)</h3>
+  <div class="timeline" id="timeline">
+    <div class="timeline-fill" id="fill"></div>
+  </div>
+</div>
+
+<!-- CHART -->
+<div class="card">
+  <h3>📈 Learning System Health (SLO Trend)</h3>
+  <canvas id="chart"></canvas>
+</div>
+
+<!-- INCIDENT LOG -->
+<div class="card">
+  <h3>🚨 Incident Log</h3>
+  <div class="alert">🔴 Break 1: ~60 days downtime (2023 recovery window)</div>
+  <div class="alert">🔴 Break 2: ~60 days downtime (2024 recovery window)</div>
+</div>
+
+</div>
+
 <script>
+
 const start = new Date("2023-04-01");
 const end = new Date("2026-10-31");
 const now = new Date();
 
-const totalDays = Math.ceil((end - start) / (1000*60*60*24));
-const elapsedDays = Math.ceil((now - start) / (1000*60*60*24));
-const remainingDays = totalDays - elapsedDays;
+const totalDays = Math.ceil((end - start)/(1000*60*60*24));
+const elapsed = Math.ceil((now - start)/(1000*60*60*24));
 
-const uptime = Math.min(100, (elapsedDays / totalDays) * 100).toFixed(2);
+// YOUR REAL INCIDENT DATA
+const downtime = 120; // 2 breaks
+const active = totalDays - downtime;
 
-// HEADER DATE
-document.getElementById("dateNow").innerText = now.toDateString();
+const availability = (active / totalDays) * 100;
+
+// HEADER
+document.getElementById("today").innerText = now.toDateString();
 
 // METRICS
-document.getElementById("uptime").innerText = uptime + "%";
-document.getElementById("daysElapsed").innerText = elapsedDays;
-document.getElementById("daysLeft").innerText = remainingDays;
+document.getElementById("uptime").innerText = availability.toFixed(2) + "%";
+document.getElementById("activeDays").innerText = active;
+document.getElementById("downtimeDays").innerText = downtime;
 
-// RING
-document.getElementById("ring").style.setProperty("--p", uptime + "%");
+// STATUS
+document.getElementById("status").innerText =
+  availability >= 95 ? "HEALTHY" :
+  availability >= 90 ? "DEGRADED" : "CRITICAL";
+
+// GAUGE
+document.getElementById("gauge").style.setProperty("--p", availability + "%");
 
 // TIMELINE
-const progress = (elapsedDays / totalDays) * 100;
-document.getElementById("timelineFill").style.width = progress + "%";
+document.getElementById("fill").style.width =
+  (elapsed / totalDays) * 100 + "%";
 
-// ALERT LOGIC (SRE STYLE)
-const alerts = document.getElementById("alerts");
+// INCIDENT MARKERS (visual red zones)
+const timeline = document.getElementById("timeline");
 
-if (uptime > 50) {
-  alerts.innerHTML += `<div class="alert">✔ System stable: past halfway milestone reached</div>`;
-}
-if (uptime > 75) {
-  alerts.innerHTML += `<div class="alert">⚠ High progress: final phase approaching</div>`;
-}
-if (uptime > 90) {
-  alerts.innerHTML += `<div class="alert">🚨 Critical phase: near completion window</div>`;
-}
+// simulate two incident markers
+const incidents = [
+  { pos: 20 }, // first break
+  { pos: 55 }  // second break
+];
 
-// CHART (simulated SLO trend)
-const ctx = document.getElementById('chart');
+incidents.forEach(i => {
+  const el = document.createElement("div");
+  el.className = "incident";
+  el.style.left = i.pos + "%";
+  timeline.appendChild(el);
+});
+
+// CHART (SLO + target line)
+const ctx = document.getElementById("chart");
 
 const labels = [];
-const data = [];
+const slo = [];
+const target = [];
 
 for (let i = 0; i <= 12; i++) {
-  labels.push(`M${i}`);
-  data.push((i/12) * 100);
+  labels.push("M" + i);
+  slo.push((i / 12) * availability);
+  target.push(95);
 }
 
 new Chart(ctx, {
-  type: 'line',
+  type: "line",
   data: {
     labels,
-    datasets: [{
-      label: 'Completion SLO %',
-      data,
-      borderColor: '#00ffcc',
-      tension: 0.4,
-      fill: true
-    }]
+    datasets: [
+      {
+        label: "Actual Learning SLO",
+        data: slo,
+        borderColor: "#00ffcc",
+        tension: 0.4
+      },
+      {
+        label: "Target SLA (95%)",
+        data: target,
+        borderColor: "#ff4d4d",
+        borderDash: [5,5],
+        tension: 0
+      }
+    ]
   },
   options: {
     plugins: {
-      legend: { display: false }
+      legend: { labels: { color: "#fff" } }
     },
     scales: {
-      x: { display: true },
-      y: { display: true, max: 100 }
+      x: { ticks: { color: "#aaa" } },
+      y: { ticks: { color: "#aaa" }, max: 100 }
     }
   }
 });
+
 </script>
 
 </body>
