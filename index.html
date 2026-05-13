@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Education Observability Dashboard</title>
+<title>Academic Observability Platform v2</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -23,18 +23,19 @@ body {
   gap: 1.5rem;
 }
 
+/* HEADER */
 .header {
   display: flex;
   justify-content: space-between;
   padding: 1.2rem;
-  border-radius: 14px;
   background: rgba(255,255,255,0.04);
+  border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.08);
 }
 
 .title {
   font-size: 1.4rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .sub {
@@ -42,6 +43,7 @@ body {
   opacity: 0.7;
 }
 
+/* GRID */
 .grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -55,24 +57,36 @@ body {
   padding: 1rem;
 }
 
-/* KPI */
 .kpi {
   font-size: 1.8rem;
   font-weight: 800;
 }
 
+/* PROGRESS BAR */
+.progress {
+  height: 12px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg,#00ffcc,#7c5cff);
+}
+
 /* CHART */
 canvas {
   width: 100% !important;
-  height: 260px !important;
+  height: 250px !important;
 }
 
-/* BADGES */
+/* BADGE */
 .badge {
-  display: inline-block;
   padding: 0.3rem 0.6rem;
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  display: inline-block;
   margin-top: 0.3rem;
 }
 
@@ -80,21 +94,6 @@ canvas {
 .red { background: rgba(255,77,77,0.15); color: #ff4d4d; }
 .yellow { background: rgba(255,200,0,0.15); color: #ffd166; }
 
-.table {
-  width: 100%;
-  font-size: 0.8rem;
-  border-collapse: collapse;
-}
-
-.table td {
-  padding: 0.4rem;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.section-title {
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
 </style>
 </head>
 
@@ -105,112 +104,106 @@ canvas {
 <!-- HEADER -->
 <div class="header">
   <div>
-    <div class="title">🎓 Education Observability System</div>
-    <div class="sub">SRE-style academic telemetry dashboard</div>
+    <div class="title">🎓 Academic Observability System</div>
+    <div class="sub">SRE-style learning lifecycle tracking</div>
   </div>
   <div class="sub" id="today"></div>
 </div>
 
-<!-- KPIs -->
+<!-- KPI GRID -->
 <div class="grid">
 
   <div class="card">
+    <div class="kpi" id="daysInSchool">0</div>
+    <div class="sub">Days in School</div>
+  </div>
+
+  <div class="card">
+    <div class="kpi" id="daysRemaining">0</div>
+    <div class="sub">Days Remaining</div>
+  </div>
+
+  <div class="card">
     <div class="kpi" id="availability">0%</div>
-    <div class="sub">System Availability</div>
-    <div class="badge green">Healthy</div>
+    <div class="sub">Academic Reliability</div>
+    <div id="statusBadge"></div>
   </div>
 
   <div class="card">
-    <div class="kpi" id="passed">0</div>
-    <div class="sub">Courses Passed</div>
+    <div class="kpi" id="downtime">0</div>
+    <div class="sub">Break Days (Estimated)</div>
   </div>
 
-  <div class="card">
-    <div class="kpi" id="failed">0</div>
-    <div class="sub">Failures</div>
-  </div>
+</div>
 
-  <div class="card">
-    <div class="kpi" id="withdrawn">0</div>
-    <div class="sub">Withdrawals</div>
+<!-- PROGRESS -->
+<div class="card">
+  <div class="sub">📊 Journey Progress</div>
+  <div class="progress">
+    <div class="progress-fill" id="progressFill"></div>
   </div>
-
 </div>
 
 <!-- CHARTS -->
 <div class="card">
-  <div class="section-title">📊 Course Outcome Distribution</div>
+  <div class="sub">📈 Course Outcome Distribution</div>
   <canvas id="pie"></canvas>
 </div>
 
 <div class="card">
-  <div class="section-title">📈 Learning Velocity (Simulated Trend)</div>
+  <div class="sub">📉 Learning Trajectory</div>
   <canvas id="line"></canvas>
-</div>
-
-<!-- INCIDENT LOG -->
-<div class="card">
-  <div class="section-title">🚨 Incident Log (Failures / Withdrawals)</div>
-  <table class="table" id="incidentTable"></table>
 </div>
 
 </div>
 
 <script>
 
-// ---------------- DATA ----------------
+// ---------------- CONFIG ----------------
+const start = new Date("2023-04-01");
+const end = new Date("2026-10-31");
+const now = new Date();
+
+// estimated break days (2 months twice)
+const downtimeDays = 120;
+
+// ---------------- COURSE DATA ----------------
 const courses = [
-  { code:"ENT2100", status:"A" },
-  { code:"FIN3150", status:"A" },
-  { code:"ACC3250", status:"A" },
-  { code:"MKT2200", status:"A" },
-  { code:"HRM4250", status:"A" },
-  { code:"HRM3150", status:"A" },
-  { code:"COM1200", status:"A" },
-  { code:"HRM2200", status:"A" },
-  { code:"COM1200", status:"F" },
-  { code:"CUL2300", status:"A" },
-  { code:"DTF2100", status:"A" },
-  { code:"FIN2100", status:"A" },
-  { code:"SCI1150", status:"A" },
-  { code:"SCI2150", status:"A" },
-  { code:"SCI2150", status:"W" },
-  { code:"NWL2100", status:"A" },
-  { code:"PBS2250", status:"A" },
-  { code:"ACC2200", status:"A" },
-  { code:"ECO1250", status:"A" },
-  { code:"MKT2150", status:"A" },
-  { code:"ACC2100", status:"A" },
-  { code:"STA1300", status:"A" },
-  { code:"CUL2200", status:"A" },
-  { code:"MKT2100", status:"A" },
-  { code:"BUS2200", status:"A" },
-  { code:"BUS2150", status:"A" },
-  { code:"HRM2100", status:"A" },
-  { code:"BUS2100", status:"A" },
-  { code:"BUS2151", status:"A" },
-  { code:"BUS2250", status:"A" },
-  { code:"BUS2125", status:"A" },
-  { code:"CUL1100", status:"A" },
-  { code:"BUS1100", status:"A" }
+"A","A","A","A","A","A","A","A","F","A","A","A","A","A","W",
+"A","A","A","A","A","A","A","A","A","A","A","A","A","A","A","A","A","A"
 ];
 
-// ---------------- CALCULATIONS ----------------
-const total = courses.length;
-const passed = courses.filter(c => c.status === "A").length;
-const failed = courses.filter(c => c.status === "F").length;
-const withdrawn = courses.filter(c => c.status === "W").length;
+// ---------------- CALC ----------------
+const totalDays = Math.ceil((end - start)/(1000*60*60*24));
+const daysInSchool = Math.ceil((now - start)/(1000*60*60*24));
+const daysRemaining = totalDays - daysInSchool;
 
-const availability = (passed / total) * 100;
+const passed = courses.filter(c => c === "A").length;
+const failed = courses.filter(c => c === "F").length;
+const withdrawn = courses.filter(c => c === "W").length;
 
-// ---------------- HEADER ----------------
-document.getElementById("today").innerText = new Date().toDateString();
+const reliability = (passed / courses.length) * 100;
 
-// ---------------- KPI ----------------
-document.getElementById("availability").innerText = availability.toFixed(1) + "%";
-document.getElementById("passed").innerText = passed;
-document.getElementById("failed").innerText = failed;
-document.getElementById("withdrawn").innerText = withdrawn;
+// ---------------- UI ----------------
+document.getElementById("today").innerText = now.toDateString();
+
+document.getElementById("daysInSchool").innerText = daysInSchool;
+document.getElementById("daysRemaining").innerText = daysRemaining;
+document.getElementById("availability").innerText = reliability.toFixed(1) + "%";
+document.getElementById("downtime").innerText = downtimeDays;
+
+// status
+const badge = document.getElementById("statusBadge");
+badge.innerHTML =
+  reliability >= 95
+    ? `<span class="badge green">HEALTHY</span>`
+    : reliability >= 90
+    ? `<span class="badge yellow">STABLE</span>`
+    : `<span class="badge red">DEGRADED</span>`;
+
+// progress
+const progress = (daysInSchool / totalDays) * 100;
+document.getElementById("progressFill").style.width = progress + "%";
 
 // ---------------- PIE CHART ----------------
 new Chart(document.getElementById("pie"), {
@@ -219,7 +212,7 @@ new Chart(document.getElementById("pie"), {
     labels: ["Passed", "Failed", "Withdrawn"],
     datasets: [{
       data: [passed, failed, withdrawn],
-      backgroundColor: ["#00ffcc", "#ff4d4d", "#ffd166"]
+      backgroundColor: ["#00ffcc","#ff4d4d","#ffd166"]
     }]
   }
 });
@@ -228,9 +221,9 @@ new Chart(document.getElementById("pie"), {
 const labels = [];
 const trend = [];
 
-for (let i = 0; i < total; i++) {
+for (let i = 0; i < courses.length; i++) {
   labels.push("C" + (i+1));
-  trend.push(((i+1)/total) * availability);
+  trend.push(((i+1)/courses.length) * reliability);
 }
 
 new Chart(document.getElementById("line"), {
@@ -243,24 +236,6 @@ new Chart(document.getElementById("line"), {
       borderColor: "#00ffcc",
       tension: 0.4
     }]
-  }
-});
-
-// ---------------- INCIDENT TABLE ----------------
-const table = document.getElementById("incidentTable");
-
-table.innerHTML = "<tr><td><b>Course</b></td><td><b>Status</b></td></tr>";
-
-courses.forEach(c => {
-  if (c.status !== "A") {
-    const row = document.createElement("tr");
-
-    let label =
-      c.status === "F" ? "❌ Failed" :
-      c.status === "W" ? "⚠ Withdrawn" : c.status;
-
-    row.innerHTML = `<td>${c.code}</td><td>${label}</td>`;
-    table.appendChild(row);
   }
 });
 
