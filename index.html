@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Education SRE Observability Dashboard</title>
+<title>Education Observability Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -13,14 +13,12 @@ body {
   font-family: system-ui, sans-serif;
   background: radial-gradient(circle at top, #0b1320, #05070d);
   color: #e6edf3;
-  display: flex;
-  justify-content: center;
   padding: 2rem;
 }
 
-.dashboard {
-  width: 100%;
-  max-width: 1100px;
+.container {
+  max-width: 1200px;
+  margin: auto;
   display: grid;
   gap: 1.5rem;
 }
@@ -29,17 +27,24 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 1.2rem;
-  background: rgba(255,255,255,0.04);
   border-radius: 14px;
+  background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.08);
 }
 
-.title { font-size: 1.3rem; font-weight: 700; }
-.sub { font-size: 0.8rem; opacity: 0.7; }
+.title {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.sub {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 1rem;
 }
 
@@ -50,231 +55,212 @@ body {
   padding: 1rem;
 }
 
-/* UPTIME GAUGE */
-.gauge {
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: conic-gradient(#00ffcc var(--p), rgba(255,255,255,0.08) 0);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: auto;
+/* KPI */
+.kpi {
+  font-size: 1.8rem;
+  font-weight: 800;
 }
 
-.inner {
-  width: 110px;
-  height: 110px;
-  border-radius: 50%;
-  background: #0b1320;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-/* TIMELINE */
-.timeline {
-  height: 12px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 999px;
-  position: relative;
-  overflow: hidden;
-}
-
-.timeline-fill {
-  height: 100%;
-  background: linear-gradient(90deg,#00ffcc,#7c5cff);
-}
-
-/* INCIDENT OVERLAY */
-.incident {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  width: 8px;
-  background: #ff4d4d;
-  opacity: 0.8;
-}
-
-/* ALERT */
-.alert {
-  padding: 0.6rem;
-  border-left: 3px solid #00ffcc;
-  background: rgba(0,255,204,0.05);
-  margin-top: 0.5rem;
-  font-size: 0.8rem;
-}
-
-/* CANVAS */
+/* CHART */
 canvas {
   width: 100% !important;
-  height: 240px !important;
+  height: 260px !important;
+}
+
+/* BADGES */
+.badge {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  margin-top: 0.3rem;
+}
+
+.green { background: rgba(0,255,204,0.15); color: #00ffcc; }
+.red { background: rgba(255,77,77,0.15); color: #ff4d4d; }
+.yellow { background: rgba(255,200,0,0.15); color: #ffd166; }
+
+.table {
+  width: 100%;
+  font-size: 0.8rem;
+  border-collapse: collapse;
+}
+
+.table td {
+  padding: 0.4rem;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.section-title {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
 }
 </style>
 </head>
 
 <body>
 
-<div class="dashboard">
+<div class="container">
 
 <!-- HEADER -->
 <div class="header">
   <div>
-    <div class="title">🎓 Education Reliability SRE Dashboard</div>
-    <div class="sub">NXU System Observability Layer</div>
+    <div class="title">🎓 Education Observability System</div>
+    <div class="sub">SRE-style academic telemetry dashboard</div>
   </div>
   <div class="sub" id="today"></div>
 </div>
 
-<!-- METRICS -->
+<!-- KPIs -->
 <div class="grid">
 
-  <!-- UPTIME -->
   <div class="card">
-    <div class="gauge" id="gauge">
-      <div class="inner">
-        <h2 id="uptime">0%</h2>
-        <div class="sub">Availability</div>
-      </div>
-    </div>
+    <div class="kpi" id="availability">0%</div>
+    <div class="sub">System Availability</div>
+    <div class="badge green">Healthy</div>
   </div>
 
-  <!-- DAYS -->
   <div class="card">
-    <h2 id="activeDays">0</h2>
-    <div class="sub">Active Learning Days</div>
-    <hr style="opacity:0.1">
-    <h2 id="downtimeDays">0</h2>
-    <div class="sub">Downtime (Breaks)</div>
+    <div class="kpi" id="passed">0</div>
+    <div class="sub">Courses Passed</div>
   </div>
 
-  <!-- SLA -->
   <div class="card">
-    <h2>95%</h2>
-    <div class="sub">SLO Target</div>
-    <hr style="opacity:0.1">
-    <h2 id="status"></h2>
-    <div class="sub">System Status</div>
+    <div class="kpi" id="failed">0</div>
+    <div class="sub">Failures</div>
+  </div>
+
+  <div class="card">
+    <div class="kpi" id="withdrawn">0</div>
+    <div class="sub">Withdrawals</div>
   </div>
 
 </div>
 
-<!-- TIMELINE -->
+<!-- CHARTS -->
 <div class="card">
-  <h3>📍 Lifecycle Timeline (with Incidents)</h3>
-  <div class="timeline" id="timeline">
-    <div class="timeline-fill" id="fill"></div>
-  </div>
+  <div class="section-title">📊 Course Outcome Distribution</div>
+  <canvas id="pie"></canvas>
 </div>
 
-<!-- CHART -->
 <div class="card">
-  <h3>📈 Learning System Health (SLO Trend)</h3>
-  <canvas id="chart"></canvas>
+  <div class="section-title">📈 Learning Velocity (Simulated Trend)</div>
+  <canvas id="line"></canvas>
 </div>
 
 <!-- INCIDENT LOG -->
 <div class="card">
-  <h3>🚨 Incident Log</h3>
-  <div class="alert">🔴 Break 1: ~60 days downtime (2023 recovery window)</div>
-  <div class="alert">🔴 Break 2: ~60 days downtime (2024 recovery window)</div>
+  <div class="section-title">🚨 Incident Log (Failures / Withdrawals)</div>
+  <table class="table" id="incidentTable"></table>
 </div>
 
 </div>
 
 <script>
 
-const start = new Date("2023-04-01");
-const end = new Date("2026-10-31");
-const now = new Date();
-
-const totalDays = Math.ceil((end - start)/(1000*60*60*24));
-const elapsed = Math.ceil((now - start)/(1000*60*60*24));
-
-// YOUR REAL INCIDENT DATA
-const downtime = 120; // 2 breaks
-const active = totalDays - downtime;
-
-const availability = (active / totalDays) * 100;
-
-// HEADER
-document.getElementById("today").innerText = now.toDateString();
-
-// METRICS
-document.getElementById("uptime").innerText = availability.toFixed(2) + "%";
-document.getElementById("activeDays").innerText = active;
-document.getElementById("downtimeDays").innerText = downtime;
-
-// STATUS
-document.getElementById("status").innerText =
-  availability >= 95 ? "HEALTHY" :
-  availability >= 90 ? "DEGRADED" : "CRITICAL";
-
-// GAUGE
-document.getElementById("gauge").style.setProperty("--p", availability + "%");
-
-// TIMELINE
-document.getElementById("fill").style.width =
-  (elapsed / totalDays) * 100 + "%";
-
-// INCIDENT MARKERS (visual red zones)
-const timeline = document.getElementById("timeline");
-
-// simulate two incident markers
-const incidents = [
-  { pos: 20 }, // first break
-  { pos: 55 }  // second break
+// ---------------- DATA ----------------
+const courses = [
+  { code:"ENT2100", status:"A" },
+  { code:"FIN3150", status:"A" },
+  { code:"ACC3250", status:"A" },
+  { code:"MKT2200", status:"A" },
+  { code:"HRM4250", status:"A" },
+  { code:"HRM3150", status:"A" },
+  { code:"COM1200", status:"A" },
+  { code:"HRM2200", status:"A" },
+  { code:"COM1200", status:"F" },
+  { code:"CUL2300", status:"A" },
+  { code:"DTF2100", status:"A" },
+  { code:"FIN2100", status:"A" },
+  { code:"SCI1150", status:"A" },
+  { code:"SCI2150", status:"A" },
+  { code:"SCI2150", status:"W" },
+  { code:"NWL2100", status:"A" },
+  { code:"PBS2250", status:"A" },
+  { code:"ACC2200", status:"A" },
+  { code:"ECO1250", status:"A" },
+  { code:"MKT2150", status:"A" },
+  { code:"ACC2100", status:"A" },
+  { code:"STA1300", status:"A" },
+  { code:"CUL2200", status:"A" },
+  { code:"MKT2100", status:"A" },
+  { code:"BUS2200", status:"A" },
+  { code:"BUS2150", status:"A" },
+  { code:"HRM2100", status:"A" },
+  { code:"BUS2100", status:"A" },
+  { code:"BUS2151", status:"A" },
+  { code:"BUS2250", status:"A" },
+  { code:"BUS2125", status:"A" },
+  { code:"CUL1100", status:"A" },
+  { code:"BUS1100", status:"A" }
 ];
 
-incidents.forEach(i => {
-  const el = document.createElement("div");
-  el.className = "incident";
-  el.style.left = i.pos + "%";
-  timeline.appendChild(el);
+// ---------------- CALCULATIONS ----------------
+const total = courses.length;
+const passed = courses.filter(c => c.status === "A").length;
+const failed = courses.filter(c => c.status === "F").length;
+const withdrawn = courses.filter(c => c.status === "W").length;
+
+const availability = (passed / total) * 100;
+
+// ---------------- HEADER ----------------
+document.getElementById("today").innerText = new Date().toDateString();
+
+// ---------------- KPI ----------------
+document.getElementById("availability").innerText = availability.toFixed(1) + "%";
+document.getElementById("passed").innerText = passed;
+document.getElementById("failed").innerText = failed;
+document.getElementById("withdrawn").innerText = withdrawn;
+
+// ---------------- PIE CHART ----------------
+new Chart(document.getElementById("pie"), {
+  type: "pie",
+  data: {
+    labels: ["Passed", "Failed", "Withdrawn"],
+    datasets: [{
+      data: [passed, failed, withdrawn],
+      backgroundColor: ["#00ffcc", "#ff4d4d", "#ffd166"]
+    }]
+  }
 });
 
-// CHART (SLO + target line)
-const ctx = document.getElementById("chart");
-
+// ---------------- LINE CHART ----------------
 const labels = [];
-const slo = [];
-const target = [];
+const trend = [];
 
-for (let i = 0; i <= 12; i++) {
-  labels.push("M" + i);
-  slo.push((i / 12) * availability);
-  target.push(95);
+for (let i = 0; i < total; i++) {
+  labels.push("C" + (i+1));
+  trend.push(((i+1)/total) * availability);
 }
 
-new Chart(ctx, {
+new Chart(document.getElementById("line"), {
   type: "line",
   data: {
     labels,
-    datasets: [
-      {
-        label: "Actual Learning SLO",
-        data: slo,
-        borderColor: "#00ffcc",
-        tension: 0.4
-      },
-      {
-        label: "Target SLA (95%)",
-        data: target,
-        borderColor: "#ff4d4d",
-        borderDash: [5,5],
-        tension: 0
-      }
-    ]
-  },
-  options: {
-    plugins: {
-      legend: { labels: { color: "#fff" } }
-    },
-    scales: {
-      x: { ticks: { color: "#aaa" } },
-      y: { ticks: { color: "#aaa" }, max: 100 }
-    }
+    datasets: [{
+      label: "Learning Progress",
+      data: trend,
+      borderColor: "#00ffcc",
+      tension: 0.4
+    }]
+  }
+});
+
+// ---------------- INCIDENT TABLE ----------------
+const table = document.getElementById("incidentTable");
+
+table.innerHTML = "<tr><td><b>Course</b></td><td><b>Status</b></td></tr>";
+
+courses.forEach(c => {
+  if (c.status !== "A") {
+    const row = document.createElement("tr");
+
+    let label =
+      c.status === "F" ? "❌ Failed" :
+      c.status === "W" ? "⚠ Withdrawn" : c.status;
+
+    row.innerHTML = `<td>${c.code}</td><td>${label}</td>`;
+    table.appendChild(row);
   }
 });
 
