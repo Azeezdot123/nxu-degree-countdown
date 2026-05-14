@@ -39,7 +39,6 @@
   .stat-label { font-size: 11px; color: #78716c; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
   .stat-val { font-size: 18px; font-weight: 500; color: #1c1917; }
   .stat-sub { font-size: 11px; color: #78716c; margin-top: 2px; }
-  .next-chip { display: inline-flex; align-items: center; gap: 6px; background: #E6F1FB; color: #0C447C; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 999px; margin-top: 4px; }
 </style>
 </head>
 <body>
@@ -50,6 +49,7 @@
     <p id="today-date"></p>
   </div>
 
+  <!-- KPIs -->
   <div class="kpi-grid">
     <div class="kpi-card">
       <div class="kpi-label">Days in school</div>
@@ -78,12 +78,12 @@
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Credits earned</div>
-      <div class="kpi-value" id="creditsEarned">—</div>
-      <div class="kpi-sub" id="creditsOf">of 120 total</div>
+      <div class="kpi-value">93</div>
+      <div class="kpi-sub">of 120 total</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Courses done</div>
-      <div class="kpi-value" id="coursesDone">—</div>
+      <div class="kpi-value">31</div>
       <div class="kpi-sub">of 40 total</div>
     </div>
   </div>
@@ -113,27 +113,19 @@
     <div class="section-label"><i class="ti ti-award"></i> Credits progress</div>
     <div class="progress-track">
       <div style="display:flex; height:100%; border-radius:999px; overflow:hidden;">
-        <div id="creditsFill" style="background:#378ADD; height:100%; transition: width 0.6s;"></div>
-        <div id="creditsRem" style="background:#A8D0F5; height:100%; transition: width 0.6s;"></div>
+        <div style="background:#378ADD; height:100%; width:77.5%;"></div>
+        <div style="background:#A8D0F5; height:100%; width:22.5%;"></div>
       </div>
     </div>
     <div class="progress-labels">
       <span>0 credits</span>
-      <span id="creditsLabel">—</span>
+      <span>93 / 120 credits</span>
       <span>120 credits</span>
     </div>
     <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#378ADD"></div> <span id="creditsEarnedLegend">—</span></div>
-      <div class="legend-item"><div class="legend-dot" style="background:#A8D0F5"></div> <span id="creditsRemLegend">—</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#378ADD"></div> Earned (93)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#A8D0F5"></div> Remaining (27)</div>
     </div>
-  </div>
-
-  <!-- Next increment -->
-  <div class="section">
-    <div class="section-label"><i class="ti ti-clock"></i> Auto-increment schedule</div>
-    <div id="nextInfo"></div>
-    <div class="divider"></div>
-    <div id="scheduleRows"></div>
   </div>
 
   <!-- Break details -->
@@ -149,7 +141,7 @@
     <div class="meta-row"><span>Identified from</span><span class="meta-val">tuition payment gaps</span></div>
   </div>
 
-  <!-- Summary -->
+  <!-- Summary stats -->
   <div class="section">
     <div class="section-label"><i class="ti ti-chart-bar"></i> Summary</div>
     <div class="stat-grid">
@@ -165,8 +157,8 @@
       </div>
       <div class="stat-item">
         <div class="stat-label">Credits remaining</div>
-        <div class="stat-val" id="creditsRemStat">—</div>
-        <div class="stat-sub" id="creditsRemSubStat">—</div>
+        <div class="stat-val">27</div>
+        <div class="stat-sub">9 courses × 3 credits</div>
       </div>
       <div class="stat-item">
         <div class="stat-label">Tuition months paid</div>
@@ -182,143 +174,39 @@
   const START = new Date("2023-04-01");
   const END = new Date("2026-10-31");
   const NOW = new Date();
-  const nowYear = NOW.getFullYear();
-  const nowMonth = NOW.getMonth(); // 0-indexed
   const BREAK_DAYS = 60;
-  const TOTAL_COURSES = 40;
-  const CREDITS_PER_COURSE = 3;
-  const TOTAL_CREDITS = 120;
-
-  // ── Auto-compute courses passed ──────────────────────────────
-  // Base: 31 courses as of end of May 2026 (month index 4 = May)
-  // Rule: end of each month from Jun 2026, add 2 (or 1 if at 39)
-  // Sep 2026 (month 8) and Oct 2026 (month 9) are project months: +1 each
-  // After hitting 39, the next month adds the final 1
-
-  const BASE_COURSES = 31;
-  const BASE_YEAR = 2026;
-  const BASE_MONTH = 4; // May 2026 (0-indexed)
-
-  const PROJECT_MONTHS = ["2026-9"]; // Sep & Oct each add 1
-  // Oct also adds 1 but we handle via the cap logic
-
-  // Build schedule of increments month by month from Jun 2026
-  let courses = BASE_COURSES;
-  const scheduleItems = [];
-
-  let sd = new Date(2026, 5, 1); // Jun 2026
-  while (courses < TOTAL_COURSES) {
-    const sy = sd.getFullYear();
-    const sm = sd.getMonth();
-    const key = sy + "-" + sm;
-    // Sep (8) and Oct (9) 2026 are project months: +1
-    const isProject = (sy === 2026 && (sm === 8 || sm === 9));
-    const increment = isProject ? 1 : Math.min(2, TOTAL_COURSES - courses);
-    const prev = courses;
-    courses = Math.min(courses + increment, TOTAL_COURSES);
-    scheduleItems.push({
-      year: sy, month: sm,
-      label: sd.toLocaleDateString("en-GB", { month: "short", year: "2-digit" }),
-      add: courses - prev,
-      total: courses,
-      type: isProject ? "project" : (courses - prev === 1 ? "final" : "monthly")
-    });
-    sd.setMonth(sd.getMonth() + 1);
-  }
-
-  // Compute current courses: count items where month has passed or is current
-  let currentCourses = BASE_COURSES;
-  scheduleItems.forEach(s => {
-    const isPast = (s.year < nowYear) || (s.year === nowYear && s.month < nowMonth);
-    const isCurrent = (s.year === nowYear && s.month === nowMonth);
-    if (isPast || isCurrent) currentCourses = s.total;
-  });
-
-  const creditsEarned = currentCourses * CREDITS_PER_COURSE;
-  const creditsRemaining = TOTAL_CREDITS - creditsEarned;
-  const reliability = (currentCourses / TOTAL_COURSES * 100).toFixed(1);
 
   const totalDays = Math.ceil((END - START) / 864e5);
   const daysIn = Math.ceil((NOW - START) / 864e5);
-  const daysLeft = Math.max(0, totalDays - daysIn);
+  const daysLeft = totalDays - daysIn;
   const activeDays = daysIn - BREAK_DAYS;
-  const uptime = (activeDays / daysIn * 100).toFixed(1);
+  const uptime = ((daysIn - BREAK_DAYS) / daysIn * 100).toFixed(1);
 
-  // ── Populate UI ───────────────────────────────────────────────
+  const passedCount = 31;
+  const totalCourses = 40;
+  const reliability = (passedCount / totalCourses * 100).toFixed(1);
+
   document.getElementById("today-date").textContent =
     "SRE-style learning lifecycle tracking · " +
     NOW.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
   document.getElementById("daysIn").textContent = daysIn.toLocaleString();
   document.getElementById("activeDays").textContent = activeDays.toLocaleString();
-  document.getElementById("daysLeft").textContent = daysLeft.toLocaleString();
+  document.getElementById("daysLeft").textContent = Math.max(0, daysLeft).toLocaleString();
   document.getElementById("reliability").textContent = reliability + "%";
   document.getElementById("uptime").textContent = uptime + "%";
-  document.getElementById("coursesDone").textContent = currentCourses;
-  document.getElementById("creditsEarned").textContent = creditsEarned;
+  document.getElementById("progressPct").textContent = passedCount + " / 40 passed";
 
-  // Reliability badge
+  const completedPct = (passedCount / totalCourses * 100).toFixed(1);
+  const projectedPct = ((totalCourses - passedCount) / totalCourses * 100).toFixed(1);
+  document.getElementById("progressFill").style.width = completedPct + "%";
+  document.getElementById("progressProjected").style.width = projectedPct + "%";
+
   const badge = document.getElementById("reliabilityBadge");
   if (reliability >= 95) badge.innerHTML = '<span class="badge badge-green"><i class="ti ti-circle-check"></i> Healthy</span>';
   else if (reliability >= 90) badge.innerHTML = '<span class="badge badge-yellow"><i class="ti ti-alert-triangle"></i> Stable</span>';
   else badge.innerHTML = '<span class="badge badge-red"><i class="ti ti-circle-x"></i> Degraded</span>';
-
-  // Journey progress bar
-  const completedPct = (currentCourses / TOTAL_COURSES * 100).toFixed(1);
-  const projectedPct = ((TOTAL_COURSES - currentCourses) / TOTAL_COURSES * 100).toFixed(1);
-  document.getElementById("progressFill").style.width = completedPct + "%";
-  document.getElementById("progressProjected").style.width = projectedPct + "%";
-  document.getElementById("progressPct").textContent = currentCourses + " / 40 passed";
-
-  // Credits progress bar
-  const creditsPct = (creditsEarned / TOTAL_CREDITS * 100).toFixed(1);
-  const creditsRemPct = (creditsRemaining / TOTAL_CREDITS * 100).toFixed(1);
-  document.getElementById("creditsFill").style.width = creditsPct + "%";
-  document.getElementById("creditsRem").style.width = creditsRemPct + "%";
-  document.getElementById("creditsLabel").textContent = creditsEarned + " / 120 credits";
-  document.getElementById("creditsEarnedLegend").textContent = "Earned (" + creditsEarned + ")";
-  document.getElementById("creditsRemLegend").textContent = "Remaining (" + creditsRemaining + ")";
-
-  // Credits summary stat
-  const coursesLeft = TOTAL_COURSES - currentCourses;
-  document.getElementById("creditsRemStat").textContent = creditsRemaining;
-  document.getElementById("creditsRemSubStat").textContent = coursesLeft + " course" + (coursesLeft !== 1 ? "s" : "") + " × 3 credits";
-
-  // ── Auto-increment schedule section ──────────────────────────
-  const nextItem = scheduleItems.find(s => {
-    const isFuture = (s.year > nowYear) || (s.year === nowYear && s.month > nowMonth);
-    return isFuture;
-  });
-
-  const nextInfoEl = document.getElementById("nextInfo");
-  if (nextItem && currentCourses < TOTAL_COURSES) {
-    const nextDate = new Date(nextItem.year, nextItem.month, 1)
-      .toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-    nextInfoEl.innerHTML =
-      '<span class="next-chip"><i class="ti ti-calendar-plus"></i> Next: +'
-      + nextItem.add + ' course' + (nextItem.add > 1 ? 's' : '')
-      + ' at end of ' + nextDate
-      + ' → total ' + nextItem.total + '</span>';
-  } else if (currentCourses >= TOTAL_COURSES) {
-    nextInfoEl.innerHTML = '<span class="next-chip" style="background:#EAF3DE;color:#3B6D11"><i class="ti ti-circle-check"></i> All 40 courses complete!</span>';
-  }
-
-  // Schedule rows
-  const rowsEl = document.getElementById("scheduleRows");
-  const typeColors = { monthly: "#1D9E75", project: "#BA7517", final: "#378ADD" };
-  const typeLabels = { monthly: "+2 courses", project: "+1 project", final: "+1 final" };
-  scheduleItems.forEach(s => {
-    const isPast = (s.year < nowYear) || (s.year === nowYear && s.month < nowMonth);
-    const isCurrent = (s.year === nowYear && s.month === nowMonth);
-    const opacity = isPast ? "0.5" : "1";
-    const checkmark = isPast ? ' <span style="color:#1D9E75; font-size:11px;">✓ done</span>' : (isCurrent ? ' <span style="color:#378ADD; font-size:11px;">← current</span>' : "");
-    rowsEl.innerHTML +=
-      '<div class="meta-row" style="opacity:' + opacity + '">'
-      + '<span>' + s.label + checkmark + '</span>'
-      + '<span class="meta-val" style="color:' + typeColors[s.type] + '">'
-      + typeLabels[s.type] + ' → ' + s.total + ' total</span>'
-      + '</div>';
-  });
 </script>
+
 </body>
 </html>
