@@ -3,242 +3,209 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Academic Observability Platform v2</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<title>Academic Observability System</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: radial-gradient(circle at top, #0b1320, #05070d);
-  color: #e6edf3;
-  padding: 2rem;
-}
-
-.container {
-  max-width: 1200px;
-  margin: auto;
-  display: grid;
-  gap: 1.5rem;
-}
-
-/* HEADER */
-.header {
-  display: flex;
-  justify-content: space-between;
-  padding: 1.2rem;
-  background: rgba(255,255,255,0.04);
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.08);
-}
-
-.title {
-  font-size: 1.4rem;
-  font-weight: 800;
-}
-
-.sub {
-  font-size: 0.8rem;
-  opacity: 0.7;
-}
-
-/* GRID */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-}
-
-.card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px;
-  padding: 1rem;
-}
-
-.kpi {
-  font-size: 1.8rem;
-  font-weight: 800;
-}
-
-/* PROGRESS BAR */
-.progress {
-  height: 12px;
-  background: rgba(255,255,255,0.08);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg,#00ffcc,#7c5cff);
-}
-
-/* CHART */
-canvas {
-  width: 100% !important;
-  height: 250px !important;
-}
-
-/* BADGE */
-.badge {
-  padding: 0.3rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  display: inline-block;
-  margin-top: 0.3rem;
-}
-
-.green { background: rgba(0,255,204,0.15); color: #00ffcc; }
-.red { background: rgba(255,77,77,0.15); color: #ff4d4d; }
-.yellow { background: rgba(255,200,0,0.15); color: #ffd166; }
-
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f4; color: #1c1917; padding: 2rem; min-height: 100vh; }
+  .dash { max-width: 900px; margin: auto; padding: 1.5rem 0; }
+  .header { margin-bottom: 1.5rem; }
+  .header h1 { font-size: 18px; font-weight: 500; color: #1c1917; display: flex; align-items: center; gap: 8px; }
+  .header p { font-size: 13px; color: #78716c; margin-top: 4px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .kpi-card { background: #fff; border-radius: 10px; padding: 1rem; border: 0.5px solid #e7e5e4; }
+  .kpi-label { font-size: 12px; color: #78716c; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .kpi-value { font-size: 28px; font-weight: 500; color: #1c1917; line-height: 1; }
+  .kpi-sub { font-size: 12px; color: #78716c; margin-top: 6px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 6px; margin-top: 8px; }
+  .badge-green { background: #EAF3DE; color: #3B6D11; }
+  .badge-yellow { background: #FAEEDA; color: #854F0B; }
+  .badge-red { background: #FCEBEB; color: #A32D2D; }
+  .section { background: #fff; border: 0.5px solid #e7e5e4; border-radius: 12px; padding: 1.25rem; margin-bottom: 12px; }
+  .section-label { font-size: 12px; color: #78716c; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .progress-track { height: 8px; background: #f5f5f4; border-radius: 999px; overflow: hidden; }
+  .progress-labels { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: #78716c; }
+  .divider { height: 0.5px; background: #e7e5e4; margin: 1rem 0; }
+  .meta-row { display: flex; justify-content: space-between; font-size: 13px; color: #78716c; margin-bottom: 6px; }
+  .meta-row:last-child { margin-bottom: 0; }
+  .meta-val { color: #1c1917; font-weight: 500; }
+  .legend { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #78716c; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .break-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .break-chip { background: #FCEBEB; color: #A32D2D; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-item { padding: 10px 12px; background: #f5f5f4; border-radius: 8px; }
+  .stat-label { font-size: 11px; color: #78716c; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .stat-val { font-size: 18px; font-weight: 500; color: #1c1917; }
+  .stat-sub { font-size: 11px; color: #78716c; margin-top: 2px; }
 </style>
 </head>
-
 <body>
+<div class="dash">
 
-<div class="container">
-
-<!-- HEADER -->
-<div class="header">
-  <div>
-    <div class="title">🎓 Academic Observability System</div>
-    <div class="sub">SRE-style learning lifecycle tracking</div>
-  </div>
-  <div class="sub" id="today"></div>
-</div>
-
-<!-- KPI GRID -->
-<div class="grid">
-
-  <div class="card">
-    <div class="kpi" id="daysInSchool">0</div>
-    <div class="sub">Days in School</div>
+  <div class="header">
+    <h1><i class="ti ti-school"></i> Academic Observability System</h1>
+    <p id="today-date"></p>
   </div>
 
-  <div class="card">
-    <div class="kpi" id="daysRemaining">0</div>
-    <div class="sub">Days Remaining</div>
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Days in school</div>
+      <div class="kpi-value" id="daysIn">—</div>
+      <div class="kpi-sub">since Apr 1, 2023</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Active days</div>
+      <div class="kpi-value" id="activeDays">—</div>
+      <div class="kpi-sub">excl. break days</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Break days</div>
+      <div class="kpi-value">60</div>
+      <div class="kpi-sub">2 months paused</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Days remaining</div>
+      <div class="kpi-value" id="daysLeft">—</div>
+      <div class="kpi-sub">until Oct 31, 2026</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Reliability</div>
+      <div class="kpi-value" id="reliability">—</div>
+      <div id="reliabilityBadge"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Credits earned</div>
+      <div class="kpi-value">93</div>
+      <div class="kpi-sub">of 120 total</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Courses done</div>
+      <div class="kpi-value">31</div>
+      <div class="kpi-sub">of 40 total</div>
+    </div>
   </div>
 
-  <div class="card">
-    <div class="kpi" id="availability">0%</div>
-    <div class="sub">Academic Reliability</div>
-    <div id="statusBadge"></div>
+  <!-- Journey progress -->
+  <div class="section">
+    <div class="section-label"><i class="ti ti-route"></i> Journey progress</div>
+    <div class="progress-track">
+      <div style="display:flex; height:100%; border-radius:999px; overflow:hidden;">
+        <div id="progressFill" style="background:#1D9E75; height:100%; transition: width 0.6s;"></div>
+        <div id="progressProjected" style="background:#9FE1CB; height:100%; transition: width 0.6s;"></div>
+      </div>
+    </div>
+    <div class="progress-labels">
+      <span>Apr 2023</span>
+      <span id="progressPct"></span>
+      <span>Oct 2026</span>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#1D9E75"></div> Completed (passed)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#9FE1CB"></div> Projected remaining</div>
+    </div>
   </div>
 
-  <div class="card">
-    <div class="kpi" id="downtime">0</div>
-    <div class="sub">Break Days (Estimated)</div>
+  <!-- Credits progress -->
+  <div class="section">
+    <div class="section-label"><i class="ti ti-award"></i> Credits progress</div>
+    <div class="progress-track">
+      <div style="display:flex; height:100%; border-radius:999px; overflow:hidden;">
+        <div style="background:#378ADD; height:100%; width:77.5%;"></div>
+        <div style="background:#A8D0F5; height:100%; width:22.5%;"></div>
+      </div>
+    </div>
+    <div class="progress-labels">
+      <span>0 credits</span>
+      <span>93 / 120 credits</span>
+      <span>120 credits</span>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#378ADD"></div> Earned (93)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#A8D0F5"></div> Remaining (27)</div>
+    </div>
   </div>
 
-</div>
-
-<!-- PROGRESS -->
-<div class="card">
-  <div class="sub">📊 Journey Progress</div>
-  <div class="progress">
-    <div class="progress-fill" id="progressFill"></div>
+  <!-- Break details -->
+  <div class="section">
+    <div class="section-label"><i class="ti ti-pause"></i> Break periods</div>
+    <div class="break-chips">
+      <span class="break-chip">May 2024 · ~30 days</span>
+      <span class="break-chip">March 2025 · ~30 days</span>
+    </div>
+    <div class="divider"></div>
+    <div class="meta-row"><span>Total break months</span><span class="meta-val">2 months</span></div>
+    <div class="meta-row"><span>Estimated break days</span><span class="meta-val">~60 days</span></div>
+    <div class="meta-row"><span>Identified from</span><span class="meta-val">tuition payment gaps</span></div>
   </div>
-</div>
 
-<!-- CHARTS -->
-<div class="card">
-  <div class="sub">📈 Course Outcome Distribution</div>
-  <canvas id="pie"></canvas>
-</div>
-
-<div class="card">
-  <div class="sub">📉 Learning Trajectory</div>
-  <canvas id="line"></canvas>
-</div>
+  <!-- Summary stats -->
+  <div class="section">
+    <div class="section-label"><i class="ti ti-chart-bar"></i> Summary</div>
+    <div class="stat-grid">
+      <div class="stat-item">
+        <div class="stat-label">Uptime</div>
+        <div class="stat-val" id="uptime">—</div>
+        <div class="stat-sub">of total enrollment period</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Projected final reliability</div>
+        <div class="stat-val">100.0%</div>
+        <div class="stat-sub">when all 40 courses passed</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Credits remaining</div>
+        <div class="stat-val">27</div>
+        <div class="stat-sub">9 courses × 3 credits</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-label">Tuition months paid</div>
+        <div class="stat-val">36</div>
+        <div class="stat-sub">Apr 2023 – May 2026</div>
+      </div>
+    </div>
+  </div>
 
 </div>
 
 <script>
+  const START = new Date("2023-04-01");
+  const END = new Date("2026-10-31");
+  const NOW = new Date();
+  const BREAK_DAYS = 60;
 
-// ---------------- CONFIG ----------------
-const start = new Date("2023-04-01");
-const end = new Date("2026-10-31");
-const now = new Date();
+  const totalDays = Math.ceil((END - START) / 864e5);
+  const daysIn = Math.ceil((NOW - START) / 864e5);
+  const daysLeft = totalDays - daysIn;
+  const activeDays = daysIn - BREAK_DAYS;
+  const uptime = ((daysIn - BREAK_DAYS) / daysIn * 100).toFixed(1);
 
-// estimated break days (2 months twice)
-const downtimeDays = 120;
+  const passedCount = 31;
+  const totalCourses = 40;
+  const reliability = (passedCount / totalCourses * 100).toFixed(1);
 
-// ---------------- COURSE DATA ----------------
-const courses = [
-"A","A","A","A","A","A","A","A","F","A","A","A","A","A","W",
-"A","A","A","A","A","A","A","A","A","A","A","A","A","A","A","A","A","A"
-];
+  document.getElementById("today-date").textContent =
+    "SRE-style learning lifecycle tracking · " +
+    NOW.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
-// ---------------- CALC ----------------
-const totalDays = Math.ceil((end - start)/(1000*60*60*24));
-const daysInSchool = Math.ceil((now - start)/(1000*60*60*24));
-const daysRemaining = totalDays - daysInSchool;
+  document.getElementById("daysIn").textContent = daysIn.toLocaleString();
+  document.getElementById("activeDays").textContent = activeDays.toLocaleString();
+  document.getElementById("daysLeft").textContent = Math.max(0, daysLeft).toLocaleString();
+  document.getElementById("reliability").textContent = reliability + "%";
+  document.getElementById("uptime").textContent = uptime + "%";
+  document.getElementById("progressPct").textContent = passedCount + " / 40 passed";
 
-const passed = courses.filter(c => c === "A").length;
-const failed = courses.filter(c => c === "F").length;
-const withdrawn = courses.filter(c => c === "W").length;
+  const completedPct = (passedCount / totalCourses * 100).toFixed(1);
+  const projectedPct = ((totalCourses - passedCount) / totalCourses * 100).toFixed(1);
+  document.getElementById("progressFill").style.width = completedPct + "%";
+  document.getElementById("progressProjected").style.width = projectedPct + "%";
 
-const reliability = (passed / courses.length) * 100;
-
-// ---------------- UI ----------------
-document.getElementById("today").innerText = now.toDateString();
-
-document.getElementById("daysInSchool").innerText = daysInSchool;
-document.getElementById("daysRemaining").innerText = daysRemaining;
-document.getElementById("availability").innerText = reliability.toFixed(1) + "%";
-document.getElementById("downtime").innerText = downtimeDays;
-
-// status
-const badge = document.getElementById("statusBadge");
-badge.innerHTML =
-  reliability >= 95
-    ? `<span class="badge green">HEALTHY</span>`
-    : reliability >= 90
-    ? `<span class="badge yellow">STABLE</span>`
-    : `<span class="badge red">DEGRADED</span>`;
-
-// progress
-const progress = (daysInSchool / totalDays) * 100;
-document.getElementById("progressFill").style.width = progress + "%";
-
-// ---------------- PIE CHART ----------------
-new Chart(document.getElementById("pie"), {
-  type: "pie",
-  data: {
-    labels: ["Passed", "Failed", "Withdrawn"],
-    datasets: [{
-      data: [passed, failed, withdrawn],
-      backgroundColor: ["#00ffcc","#ff4d4d","#ffd166"]
-    }]
-  }
-});
-
-// ---------------- LINE CHART ----------------
-const labels = [];
-const trend = [];
-
-for (let i = 0; i < courses.length; i++) {
-  labels.push("C" + (i+1));
-  trend.push(((i+1)/courses.length) * reliability);
-}
-
-new Chart(document.getElementById("line"), {
-  type: "line",
-  data: {
-    labels,
-    datasets: [{
-      label: "Learning Progress",
-      data: trend,
-      borderColor: "#00ffcc",
-      tension: 0.4
-    }]
-  }
-});
-
+  const badge = document.getElementById("reliabilityBadge");
+  if (reliability >= 95) badge.innerHTML = '<span class="badge badge-green"><i class="ti ti-circle-check"></i> Healthy</span>';
+  else if (reliability >= 90) badge.innerHTML = '<span class="badge badge-yellow"><i class="ti ti-alert-triangle"></i> Stable</span>';
+  else badge.innerHTML = '<span class="badge badge-red"><i class="ti ti-circle-x"></i> Degraded</span>';
 </script>
 
 </body>
