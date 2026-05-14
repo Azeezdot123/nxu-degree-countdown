@@ -46,7 +46,7 @@
 <div class="dash">
 
   <div class="header">
-    <h1><i class="ti ti-school"></i> Academic Observability System</h1>
+    <h1><i class="ti ti-school"></i> Academic Tracker</h1>
     <p id="today-date"></p>
   </div>
 
@@ -245,7 +245,7 @@
 
   // ── Populate UI ───────────────────────────────────────────────
   document.getElementById("today-date").textContent =
-    "SRE-style learning lifecycle tracking · " +
+    "Learning lifecycle tracking · " +
     NOW.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
   document.getElementById("daysIn").textContent = daysIn.toLocaleString();
