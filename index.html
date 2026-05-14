@@ -39,7 +39,17 @@
   .stat-label { font-size: 11px; color: #78716c; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
   .stat-val { font-size: 18px; font-weight: 500; color: #1c1917; }
   .stat-sub { font-size: 11px; color: #78716c; margin-top: 2px; }
-  .next-chip { display: inline-flex; align-items: center; gap: 6px; background: #E6F1FB; color: #0C447C; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 999px; margin-top: 4px; }
+  .next-chip { display: inline-flex; align-items: center; gap: 6px; background: #E6F1FB; color: #0C447C; font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 999px; margin-bottom: 12px; }
+  .schedule-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #78716c; padding: 7px 0; border-bottom: 0.5px solid #e7e5e4; }
+  .schedule-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .schedule-row.done { opacity: 0.45; }
+  .schedule-month { display: flex; align-items: center; gap: 6px; }
+  .tag { font-size: 11px; padding: 1px 7px; border-radius: 999px; font-weight: 500; }
+  .tag-done    { background: #EAF3DE; color: #3B6D11; }
+  .tag-current { background: #E6F1FB; color: #185FA5; }
+  .tag-future  { background: #f5f5f4; color: #78716c; }
+  .tag-project { background: #FAEEDA; color: #854F0B; }
+  .schedule-right { font-weight: 500; }
 </style>
 </head>
 <body>
@@ -79,7 +89,7 @@
     <div class="kpi-card">
       <div class="kpi-label">Credits earned</div>
       <div class="kpi-value" id="creditsEarned">—</div>
-      <div class="kpi-sub" id="creditsOf">of 120 total</div>
+      <div class="kpi-sub">of 120 total</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Courses done</div>
@@ -114,7 +124,7 @@
     <div class="progress-track">
       <div style="display:flex; height:100%; border-radius:999px; overflow:hidden;">
         <div id="creditsFill" style="background:#378ADD; height:100%; transition: width 0.6s;"></div>
-        <div id="creditsRem" style="background:#A8D0F5; height:100%; transition: width 0.6s;"></div>
+        <div id="creditsRemBar" style="background:#A8D0F5; height:100%; transition: width 0.6s;"></div>
       </div>
     </div>
     <div class="progress-labels">
@@ -128,11 +138,10 @@
     </div>
   </div>
 
-  <!-- Next increment -->
+  <!-- Auto-increment schedule -->
   <div class="section">
     <div class="section-label"><i class="ti ti-clock"></i> Auto-increment schedule</div>
     <div id="nextInfo"></div>
-    <div class="divider"></div>
     <div id="scheduleRows"></div>
   </div>
 
@@ -140,8 +149,8 @@
   <div class="section">
     <div class="section-label"><i class="ti ti-pause"></i> Break periods</div>
     <div class="break-chips">
-      <span class="break-chip">April - May 2024 · ~60 days</span>
-      <span class="break-chip">February - March 2025 · ~60 days</span>
+      <span class="break-chip">April – May 2024 · ~60 days</span>
+      <span class="break-chip">February – March 2025 · ~60 days</span>
     </div>
     <div class="divider"></div>
     <div class="meta-row"><span>Total break months</span><span class="meta-val">4 months</span></div>
@@ -176,147 +185,142 @@
   </div>
 
 </div>
-
 <script>
-  const START = new Date("2023-04-01");
-  const END = new Date("2026-10-31");
-  const NOW = new Date();
-  const nowYear = NOW.getFullYear();
-  const nowMonth = NOW.getMonth(); // 0-indexed
-  const BREAK_DAYS = 120;
-  const TOTAL_COURSES = 40;
+  const START  = new Date("2023-04-01");
+  const END    = new Date("2026-10-31");
+  const NOW    = new Date();
+  const BREAK_DAYS        = 120;
+  const TOTAL_COURSES     = 40;
   const CREDITS_PER_COURSE = 3;
-  const TOTAL_CREDITS = 120;
+  const TOTAL_CREDITS     = 120;
 
-  // ── Auto-compute courses passed ──────────────────────────────
-  // Base: 31 courses as of end of May 2026 (month index 4 = May)
-  // Rule: end of each month from Jun 2026, add 2 (or 1 if at 39)
-  // Sep 2026 (month 8) and Oct 2026 (month 9) are project months: +1 each
-  // After hitting 39, the next month adds the final 1
+  // ── Schedule ─────────────────────────────────────────────────
+  // Each entry fires (increments) when the FIRST DAY of the NEXT month arrives.
+  // Sep + Oct 2026 together = 1 final project course split across two months.
+  // The project course is counted once Oct ends (Oct fires the +1).
+  // Sep 2026 shows as "project in progress" but adds 0 — Oct adds the 1.
 
-  const BASE_COURSES = 31;
-  const BASE_YEAR = 2026;
-  const BASE_MONTH = 4; // May 2026 (0-indexed)
+  const SCHEDULE = [
+    { year: 2026, month: 4, add: 2, type: "monthly", label: "May '26" }, // fires Jun 1
+    { year: 2026, month: 5, add: 2, type: "monthly", label: "Jun '26" }, // fires Jul 1
+    { year: 2026, month: 6, add: 2, type: "monthly", label: "Jul '26" }, // fires Aug 1
+    { year: 2026, month: 7, add: 2, type: "monthly", label: "Aug '26" }, // fires Sep 1
+    { year: 2026, month: 8, add: 0, type: "project",  label: "Sep '26" }, // in progress — no count yet
+    { year: 2026, month: 9, add: 1, type: "project",  label: "Oct '26" }, // fires Nov 1 → final project done
+  ];
 
-  const PROJECT_MONTHS = ["2026-9"]; // Sep & Oct each add 1
-  // Oct also adds 1 but we handle via the cap logic
-
-  // Build schedule of increments month by month from Jun 2026
-  let courses = BASE_COURSES;
-  const scheduleItems = [];
-
-  let sd = new Date(2026, 5, 1); // Jun 2026
-  while (courses < TOTAL_COURSES) {
-    const sy = sd.getFullYear();
-    const sm = sd.getMonth();
-    const key = sy + "-" + sm;
-    // Sep (8) and Oct (9) 2026 are project months: +1
-    const isProject = (sy === 2026 && (sm === 8 || sm === 9));
-    const increment = isProject ? 1 : Math.min(2, TOTAL_COURSES - courses);
-    const prev = courses;
-    courses = Math.min(courses + increment, TOTAL_COURSES);
-    scheduleItems.push({
-      year: sy, month: sm,
-      label: sd.toLocaleDateString("en-GB", { month: "short", year: "2-digit" }),
-      add: courses - prev,
-      total: courses,
-      type: isProject ? "project" : (courses - prev === 1 ? "final" : "monthly")
-    });
-    sd.setMonth(sd.getMonth() + 1);
-  }
-
-  // Compute current courses: count items where month has passed or is current
-  let currentCourses = BASE_COURSES;
-  scheduleItems.forEach(s => {
-    const isPast = (s.year < nowYear) || (s.year === nowYear && s.month < nowMonth);
-    const isCurrent = (s.year === nowYear && s.month === nowMonth);
-    if (isPast || isCurrent) currentCourses = s.total;
+  // Build running totals
+  let running = 31;
+  const scheduleItems = SCHEDULE.map(s => {
+    running = Math.min(running + s.add, TOTAL_COURSES);
+    return {
+      ...s,
+      total: running,
+      fireDate: new Date(s.year, s.month + 1, 1), // first of next month
+      startDate: new Date(s.year, s.month, 1),
+    };
   });
 
-  const creditsEarned = currentCourses * CREDITS_PER_COURSE;
+  // Current count: apply increments whose fireDate has passed
+  let currentCourses = 31;
+  scheduleItems.forEach(s => {
+    if (NOW >= s.fireDate) currentCourses = s.total;
+  });
+
+  // ── Derived ──────────────────────────────────────────────────
+  const creditsEarned    = currentCourses * CREDITS_PER_COURSE;
   const creditsRemaining = TOTAL_CREDITS - creditsEarned;
-  const reliability = (currentCourses / TOTAL_COURSES * 100).toFixed(1);
+  const reliability      = (currentCourses / TOTAL_COURSES * 100).toFixed(1);
+  const totalDays        = Math.ceil((END - START) / 864e5);
+  const daysIn           = Math.ceil((NOW - START) / 864e5);
+  const daysLeft         = Math.max(0, totalDays - daysIn);
+  const activeDays       = daysIn - BREAK_DAYS;
+  const uptime           = (activeDays / daysIn * 100).toFixed(1);
 
-  const totalDays = Math.ceil((END - START) / 864e5);
-  const daysIn = Math.ceil((NOW - START) / 864e5);
-  const daysLeft = Math.max(0, totalDays - daysIn);
-  const activeDays = daysIn - BREAK_DAYS;
-  const uptime = (activeDays / daysIn * 100).toFixed(1);
-
-  // ── Populate UI ───────────────────────────────────────────────
+  // ── UI ───────────────────────────────────────────────────────
   document.getElementById("today-date").textContent =
     "Learning lifecycle tracking · " +
     NOW.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
-  document.getElementById("daysIn").textContent = daysIn.toLocaleString();
-  document.getElementById("activeDays").textContent = activeDays.toLocaleString();
-  document.getElementById("daysLeft").textContent = daysLeft.toLocaleString();
-  document.getElementById("reliability").textContent = reliability + "%";
-  document.getElementById("uptime").textContent = uptime + "%";
-  document.getElementById("coursesDone").textContent = currentCourses;
+  document.getElementById("daysIn").textContent        = daysIn.toLocaleString();
+  document.getElementById("activeDays").textContent    = activeDays.toLocaleString();
+  document.getElementById("daysLeft").textContent      = daysLeft.toLocaleString();
+  document.getElementById("reliability").textContent   = reliability + "%";
+  document.getElementById("uptime").textContent        = uptime + "%";
+  document.getElementById("coursesDone").textContent   = currentCourses;
   document.getElementById("creditsEarned").textContent = creditsEarned;
 
-  // Reliability badge
   const badge = document.getElementById("reliabilityBadge");
-  if (reliability >= 95) badge.innerHTML = '<span class="badge badge-green"><i class="ti ti-circle-check"></i> Healthy</span>';
-  else if (reliability >= 90) badge.innerHTML = '<span class="badge badge-yellow"><i class="ti ti-alert-triangle"></i> Stable</span>';
-  else badge.innerHTML = '<span class="badge badge-red"><i class="ti ti-circle-x"></i> Degraded</span>';
+  if (reliability >= 95)
+    badge.innerHTML = '<span class="badge badge-green"><i class="ti ti-circle-check"></i> Healthy</span>';
+  else if (reliability >= 90)
+    badge.innerHTML = '<span class="badge badge-yellow"><i class="ti ti-alert-triangle"></i> Stable</span>';
+  else
+    badge.innerHTML = '<span class="badge badge-red"><i class="ti ti-circle-x"></i> Degraded</span>';
 
-  // Journey progress bar
-  const completedPct = (currentCourses / TOTAL_COURSES * 100).toFixed(1);
-  const projectedPct = ((TOTAL_COURSES - currentCourses) / TOTAL_COURSES * 100).toFixed(1);
-  document.getElementById("progressFill").style.width = completedPct + "%";
-  document.getElementById("progressProjected").style.width = projectedPct + "%";
-  document.getElementById("progressPct").textContent = currentCourses + " / 40 passed";
+  document.getElementById("progressFill").style.width      = (currentCourses / TOTAL_COURSES * 100).toFixed(1) + "%";
+  document.getElementById("progressProjected").style.width = ((TOTAL_COURSES - currentCourses) / TOTAL_COURSES * 100).toFixed(1) + "%";
+  document.getElementById("progressPct").textContent       = currentCourses + " / 40 passed";
 
-  // Credits progress bar
-  const creditsPct = (creditsEarned / TOTAL_CREDITS * 100).toFixed(1);
-  const creditsRemPct = (creditsRemaining / TOTAL_CREDITS * 100).toFixed(1);
-  document.getElementById("creditsFill").style.width = creditsPct + "%";
-  document.getElementById("creditsRem").style.width = creditsRemPct + "%";
-  document.getElementById("creditsLabel").textContent = creditsEarned + " / 120 credits";
+  document.getElementById("creditsFill").style.width        = (creditsEarned / TOTAL_CREDITS * 100).toFixed(1) + "%";
+  document.getElementById("creditsRemBar").style.width      = (creditsRemaining / TOTAL_CREDITS * 100).toFixed(1) + "%";
+  document.getElementById("creditsLabel").textContent       = creditsEarned + " / 120 credits";
   document.getElementById("creditsEarnedLegend").textContent = "Earned (" + creditsEarned + ")";
-  document.getElementById("creditsRemLegend").textContent = "Remaining (" + creditsRemaining + ")";
+  document.getElementById("creditsRemLegend").textContent    = "Remaining (" + creditsRemaining + ")";
 
-  // Credits summary stat
   const coursesLeft = TOTAL_COURSES - currentCourses;
-  document.getElementById("creditsRemStat").textContent = creditsRemaining;
-  document.getElementById("creditsRemSubStat").textContent = coursesLeft + " course" + (coursesLeft !== 1 ? "s" : "") + " × 3 credits";
+  document.getElementById("creditsRemStat").textContent    = creditsRemaining;
+  document.getElementById("creditsRemSubStat").textContent =
+    coursesLeft + " course" + (coursesLeft !== 1 ? "s" : "") + " × 3 credits";
 
-  // ── Auto-increment schedule section ──────────────────────────
-  const nextItem = scheduleItems.find(s => {
-    const isFuture = (s.year > nowYear) || (s.year === nowYear && s.month > nowMonth);
-    return isFuture;
-  });
-
+  // ── Schedule section ─────────────────────────────────────────
   const nextInfoEl = document.getElementById("nextInfo");
-  if (nextItem && currentCourses < TOTAL_COURSES) {
-    const nextDate = new Date(nextItem.year, nextItem.month, 1)
-      .toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+
+  if (currentCourses >= TOTAL_COURSES) {
     nextInfoEl.innerHTML =
-      '<span class="next-chip"><i class="ti ti-calendar-plus"></i> Next: +'
-      + nextItem.add + ' course' + (nextItem.add > 1 ? 's' : '')
-      + ' at end of ' + nextDate
-      + ' → total ' + nextItem.total + '</span>';
-  } else if (currentCourses >= TOTAL_COURSES) {
-    nextInfoEl.innerHTML = '<span class="next-chip" style="background:#EAF3DE;color:#3B6D11"><i class="ti ti-circle-check"></i> All 40 courses complete!</span>';
+      '<div class="next-chip" style="background:#EAF3DE;color:#3B6D11">'
+      + '<i class="ti ti-circle-check"></i> All 40 courses complete! Degree done.</div>';
+  } else {
+    // Next firing item = first whose fireDate hasn't passed yet AND add > 0
+    const nextItem = scheduleItems.find(s => NOW < s.fireDate && s.add > 0);
+    if (nextItem) {
+      const daysUntil = Math.ceil((nextItem.fireDate - NOW) / 864e5);
+      const monthName = nextItem.startDate.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+      nextInfoEl.innerHTML =
+        '<div class="next-chip"><i class="ti ti-calendar-plus"></i> Next: +'
+        + nextItem.add + ' course' + (nextItem.add > 1 ? 's' : '')
+        + ' at end of ' + monthName
+        + ' — ' + daysUntil + ' day' + (daysUntil !== 1 ? 's' : '') + ' away'
+        + ' → total will be ' + nextItem.total + '</div>';
+    }
   }
 
-  // Schedule rows
+  // Rows
   const rowsEl = document.getElementById("scheduleRows");
-  const typeColors = { monthly: "#1D9E75", project: "#BA7517", final: "#378ADD" };
-  const typeLabels = { monthly: "+2 courses", project: "+1 project", final: "+1 final" };
+  const typeColor = { monthly: "#1D9E75", project: "#BA7517" };
+
   scheduleItems.forEach(s => {
-    const isPast = (s.year < nowYear) || (s.year === nowYear && s.month < nowMonth);
-    const isCurrent = (s.year === nowYear && s.month === nowMonth);
-    const opacity = isPast ? "0.5" : "1";
-    const checkmark = isPast ? ' <span style="color:#1D9E75; font-size:11px;">✓ done</span>' : (isCurrent ? ' <span style="color:#378ADD; font-size:11px;">← current</span>' : "");
-    rowsEl.innerHTML +=
-      '<div class="meta-row" style="opacity:' + opacity + '">'
-      + '<span>' + s.label + checkmark + '</span>'
-      + '<span class="meta-val" style="color:' + typeColors[s.type] + '">'
-      + typeLabels[s.type] + ' → ' + s.total + ' total</span>'
-      + '</div>';
+    const isDone    = NOW >= s.fireDate;
+    const isCurrent = !isDone && NOW >= s.startDate;
+
+    let tagHtml = "";
+    if (isDone)         tagHtml = '<span class="tag tag-done">✓ done</span>';
+    else if (isCurrent) tagHtml = '<span class="tag tag-current">← in progress</span>';
+    else if (s.type === "project") tagHtml = '<span class="tag tag-project">project</span>';
+    else                tagHtml = '<span class="tag tag-future">upcoming</span>';
+
+    const rightText = s.type === "project" && s.add === 0
+      ? '<span style="color:#BA7517">final project in progress</span>'
+      : '<span style="color:' + typeColor[s.type] + '">'
+        + (s.add > 0 ? "+" + s.add + " course" + (s.add > 1 ? "s" : "") : "project span")
+        + " → " + s.total + " total</span>";
+
+    const row = document.createElement("div");
+    row.className = "schedule-row" + (isDone ? " done" : "");
+    row.innerHTML =
+      '<div class="schedule-month"><strong>' + s.label + "</strong>" + tagHtml + "</div>"
+      + '<div class="schedule-right">' + rightText + "</div>";
+    rowsEl.appendChild(row);
   });
 </script>
 </body>
