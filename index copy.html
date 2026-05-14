@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #fafaf9; color: #1c1917; padding: 2rem; min-height: 100vh; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f5f5f4; color: #1c1917; padding: 2rem; min-height: 100vh; }
   .dash { max-width: 900px; margin: auto; padding: 1.5rem 0; }
   .header { margin-bottom: 1.5rem; }
   .header h1 { font-size: 18px; font-weight: 500; color: #1c1917; display: flex; align-items: center; gap: 8px; }
@@ -50,17 +50,6 @@
   .tag-future  { background: #f5f5f4; color: #78716c; }
   .tag-project { background: #FAEEDA; color: #854F0B; }
   .schedule-right { font-weight: 500; }
-  .kpi-card,
-  .section {
-    transition: all .2s ease;
-  }
-
-  .kpi-card:hover,
-  .section:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.04);
-  }
-  
 </style>
 </head>
 <body>
@@ -240,121 +229,6 @@
 
 </div>
 <script>
-  
-  // ─────────────────────────────────────────────
-// DAILY MOTIVATION ENGINE
-// ─────────────────────────────────────────────
-
-const motivations = [
-
-"Every course completed is proof that consistency is stronger than pressure.",
-
-"You survived days you thought would stop you. Keep going.",
-
-"Slow progress is still operational progress.",
-
-"One assignment at a time. One exam at a time. One month at a time.",
-
-"Your future career is quietly being built every single day.",
-
-"The degree is not only changing your resume. It is changing your mindset.",
-
-"Discipline is remembering what matters long after motivation disappears.",
-
-"You already made it through the hardest part: not quitting.",
-
-"Progress compounds. Small efforts become massive outcomes.",
-
-"Even during breaks, the mission never truly stopped.",
-
-"Reliability is not perfection. Reliability is recovery.",
-
-"Every completed course reduces future struggle.",
-
-"The person finishing this degree is stronger than the person who started it.",
-
-"Consistency creates opportunities that talent alone cannot sustain.",
-
-"Your timeline does not need to look like anyone else’s.",
-
-"Growth is invisible until one day it becomes impossible to ignore.",
-
-"Keep showing up. That alone separates people.",
-
-"Finished is better than perfect.",
-
-"The future version of you is depending on today's discipline.",
-
-"You are building a career, not just completing classes.",
-
-"Resting is acceptable. Quitting is not.",
-
-"Every passing month is proof that you are still in the fight.",
-
-"One difficult semester does not define the entire journey.",
-
-"Momentum returns faster when you never fully stop.",
-
-"Most people dream. Few continue when it gets difficult.",
-
-"Systems win. Keep following the system.",
-
-"The goal is not speed. The goal is completion.",
-
-"Education is one of the few investments nobody can take away from you.",
-
-"Pressure creates resilience when managed correctly.",
-
-"Future stability is being built quietly right now.",
-
-"Your current sacrifices are future infrastructure.",
-
-"The dashboard is proof: you are progressing.",
-
-"You are much closer to the finish line than the starting point.",
-
-"Every day survived is another day conquered.",
-
-"The mission continues tomorrow. Keep moving."
-
-];
-
-const motivationTags = [
-  "SYSTEM HEALTHY",
-  "MISSION ACTIVE",
-  "PROGRESS STABLE",
-  "UPTIME MAINTAINED",
-  "DISCIPLINE ONLINE",
-  "CONSISTENCY DETECTED",
-  "FOCUS MODE ACTIVE",
-  "LONG-TERM SUCCESS BUILDING"
-];
-
-const motivationBox = document.getElementById("motivationBox");
-const motivationTag = document.getElementById("motivationTag");
-
-function rotateMotivation() {
-
-  const randomMessage =
-    motivations[Math.floor(Math.random() * motivations.length)];
-
-  const randomTag =
-    motivationTags[Math.floor(Math.random() * motivationTags.length)];
-
-  motivationBox.style.opacity = 0;
-
-  setTimeout(() => {
-    motivationBox.textContent = randomMessage;
-    motivationTag.textContent = randomTag;
-    motivationBox.style.opacity = 1;
-  }, 250);
-}
-
-// Initial
-rotateMotivation();
-
-// Rotate every 12 seconds
-setInterval(rotateMotivation, 12000);
   const START  = new Date("2023-04-01");
   const END    = new Date("2026-10-31");
   const NOW    = new Date();
@@ -396,7 +270,6 @@ setInterval(rotateMotivation, 12000);
     if (NOW >= s.fireDate) currentCourses = s.total;
   });
 
-  
   // ── Derived ──────────────────────────────────────────────────
   const creditsEarned    = currentCourses * CREDITS_PER_COURSE;
   const creditsRemaining = TOTAL_CREDITS - creditsEarned;
